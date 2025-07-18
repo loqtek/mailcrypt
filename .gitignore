@@ -1,0 +1,9 @@
+__pycache__/
+data/log.log
+botenv/
+venv/
+*.db
+*.save
+*.log
+*.pyc
+*.conf

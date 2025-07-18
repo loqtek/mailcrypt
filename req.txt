@@ -1,0 +1,10 @@
+sanic
+sanic_jwt 
+bcrypt
+datetime
+jwt
+jinja2
+requests
+sqlalchemy
+imapclient
+pyzmail36
