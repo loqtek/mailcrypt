@@ -110,14 +110,14 @@
         <div class="flex-1 flex overflow-hidden">
             <!-- Sidebar -->
             <aside class="w-64 bg-white/10 backdrop-blur-lg border-r border-white/20 flex flex-col">
-                <!-- Compose Button -->
+                <!-- Compose button -->
                 <div class="p-4">
                     <button id="composeBtn" class="w-full bg-gradient-to-r from-blue-500 to-blue-900 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-900 focus:outline-none transition-all duration-200 transform hover:scale-105">
                         <i class="fas fa-plus mr-2"></i>Compose
                     </button>
                 </div>
 
-                <!-- Navigation -->
+                <!-- nav -->
                 <nav class="flex-1 px-4 pb-4">
                     <ul class="space-y-2">
                         <li>
@@ -166,9 +166,9 @@
                     </div>
                 </div>
 
-                <!-- Email Content -->
+                <!-- Email content -->
                 <div id="emailContent" class="flex-1 flex flex-col">
-                    <!-- Welcome State -->
+                    <!-- Welcome state -->
                     <div id="welcomeState" class="flex-1 flex items-center justify-center">
                         <div class="text-center">
                             <i class="fas fa-envelope text-white/30 text-6xl mb-4"></i>
@@ -177,7 +177,7 @@
                         </div>
                     </div>
 
-                    <!-- Email Viewer -->
+                    <!-- Email viewer -->
                     <div id="emailViewer" class="hidden flex-1 flex flex-col">
                         <div class="bg-white/10 backdrop-blur-lg border-b border-white/20 p-6">
                             <div class="flex items-start justify-between mb-4">
@@ -203,7 +203,7 @@
                         </div>
                     </div>
 
-                    <!-- Compose/Draft Editor -->
+                    <!-- compose/draft editor -->
                     <div id="composeEditor" class="hidden flex-1 flex flex-col slide-in">
                         <div class="bg-white/10 backdrop-blur-lg border-b border-white/20 p-4">
                             <div class="flex items-center justify-between mb-4">
@@ -253,7 +253,7 @@
     </div>
 
     <script>
-        // App State
+        // App state
         let currentView = 'inbox';
         let selectedEmail = null;
         let composeMode = false;
@@ -266,20 +266,12 @@
             inbox: [
                 {
                     id: 1,
-                    from: 'john@example.com',
-                    subject: 'Welcome to MailCrypt',
+                    from: 'mailcrypt@mailcrypt.com',
+                    subject: 'Welcome to MailCrypt <3',
                     date: new Date().toLocaleDateString(),
                     body: '<p>Welcome to MailCrypt! This is a secure email platform that protects your communications.</p>',
                     unread: true
                 },
-                {
-                    id: 2,
-                    from: 'support@mailcrypt.com',
-                    subject: 'Getting Started Guide',
-                    date: new Date(Date.now() - 86400000).toLocaleDateString(),
-                    body: '<p>Here\'s how to get started with MailCrypt...</p>',
-                    unread: false
-                }
             ],
             sent: [],
             drafts: [],
