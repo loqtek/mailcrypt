@@ -79,7 +79,7 @@ async def checkForResetDefault(app, loop):
 # handle invalid page requests
 @dashboardObj.exception(sanic.exceptions.NotFound)
 async def handle_404(request, exception):
-	error_page = Environment(loader=FileSystemLoader('./assets/html/other/')).get_template('notFound.html')
+	error_page = Environment(loader=FileSystemLoader('./src/assets/public/html/')).get_template('notFound.html')
 	return sanic.response.html(error_page.render(), status=404)
 
 

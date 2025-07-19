@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MailCrypt - Mail</title>
+    <script src="/assets/js/tailwind.js"></script>
+    <script src="/assets/js/sweetalerts.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.7/quill.snow.min.css" rel="stylesheet">
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        .ql-toolbar.ql-snow {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 8px 8px 0 0 !important;
+        }
+        .ql-container.ql-snow {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-top: none !important;
+            border-radius: 0 0 8px 8px !important;
+            color: white !important;
+        }
+        .ql-editor {
+            color: white !important;
+            min-height: 200px;
+        }
+        .ql-editor::before {
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+        .ql-snow .ql-stroke {
+            stroke: rgba(255, 255, 255, 0.8) !important;
+        }
+        .ql-snow .ql-fill {
+            fill: rgba(255, 255, 255, 0.8) !important;
+        }
+        .mail-item:hover {
+            transform: translateX(4px);
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 min-h-screen">
+    <div class="absolute inset-0 bg-black/20"></div>
+    
+    <!-- Background pattern -->
+    <div class="absolute inset-0 opacity-10">
+        <svg class="w-full h-full" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                    <path d="M 10 0 L 0 0 0 10" fill="none" stroke="white" stroke-width="0.5"/>
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+        </svg>
+    </div>
+
+    <div class="relative z-10 h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-white/10 backdrop-blur-lg border-b border-white/20 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-900 rounded-full shadow-lg">
+                        <i class="fas fa-lock text-white text-lg"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold text-white">MailCrypt</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="refreshBtn" class="p-2 text-white/70 hover:text-white transition-colors duration-200 rounded-lg hover:bg-white/10">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                    <button id="settingsBtn" class="p-2 text-white/70 hover:text-white transition-colors duration-200 rounded-lg hover:bg-white/10">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <button id="logoutBtn" class="p-2 text-white/70 hover:text-white transition-colors duration-200 rounded-lg hover:bg-white/10">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Sidebar -->
+            <aside class="w-64 bg-white/10 backdrop-blur-lg border-r border-white/20 flex flex-col">
+                <!-- Compose Button -->
+                <div class="p-4">
+                    <button id="composeBtn" class="w-full bg-gradient-to-r from-blue-500 to-blue-900 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-900 focus:outline-none transition-all duration-200 transform hover:scale-105">
+                        <i class="fas fa-plus mr-2"></i>Compose
+                    </button>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="flex-1 px-4 pb-4">
+                    <ul class="space-y-2">
+                        <li>
+                            <button class="nav-item w-full text-left px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 flex items-center space-x-3" data-view="inbox">
+                                <i class="fas fa-inbox w-5"></i>
+                                <span>Inbox</span>
+                                <span id="unreadCount" class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden">0</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="nav-item w-full text-left px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 flex items-center space-x-3" data-view="sent">
+                                <i class="fas fa-paper-plane w-5"></i>
+                                <span>Sent</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="nav-item w-full text-left px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 flex items-center space-x-3" data-view="drafts">
+                                <i class="fas fa-file-alt w-5"></i>
+                                <span>Drafts</span>
+                                <span id="draftCount" class="ml-auto bg-yellow-500 text-white text-xs rounded-full px-2 py-1 hidden">0</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="nav-item w-full text-left px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 flex items-center space-x-3" data-view="trash">
+                                <i class="fas fa-trash w-5"></i>
+                                <span>Trash</span>
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 flex overflow-hidden">
+                <!-- Email List -->
+                <div id="emailList" class="w-96 bg-white/5 backdrop-blur-lg border-r border-white/20 flex flex-col">
+                    <div class="p-4 border-b border-white/20">
+                        <h2 id="currentViewTitle" class="text-xl font-semibold text-white">Inbox</h2>
+                    </div>
+                    <div class="flex-1 overflow-y-auto custom-scrollbar" id="mailContainer">
+                        <!-- Loading state -->
+                        <div id="loadingState" class="p-8 text-center">
+                            <i class="fas fa-spinner fa-spin text-white/60 text-3xl mb-4"></i>
+                            <p class="text-white/60">Loading emails...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Content -->
+                <div id="emailContent" class="flex-1 flex flex-col">
+                    <!-- Welcome State -->
+                    <div id="welcomeState" class="flex-1 flex items-center justify-center">
+                        <div class="text-center">
+                            <i class="fas fa-envelope text-white/30 text-6xl mb-4"></i>
+                            <h3 class="text-2xl font-semibold text-white/60 mb-2">Welcome to MailCrypt</h3>
+                            <p class="text-white/40">Select an email to read or compose a new message</p>
+                        </div>
+                    </div>
+
+                    <!-- Email Viewer -->
+                    <div id="emailViewer" class="hidden flex-1 flex flex-col">
+                        <div class="bg-white/10 backdrop-blur-lg border-b border-white/20 p-6">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex-1">
+                                    <h3 id="emailSubject" class="text-xl font-semibold text-white mb-2"></h3>
+                                    <div class="flex items-center space-x-4 text-sm text-white/70">
+                                        <span id="emailFrom"></span>
+                                        <span id="emailDate"></span>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2 ml-4">
+                                    <button id="replyBtn" class="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200">
+                                        <i class="fas fa-reply"></i>
+                                    </button>
+                                    <button id="deleteBtn" class="p-2 text-white/70 hover:text-red-400 hover:bg-white/10 rounded-lg transition-all duration-200">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-1 p-6 overflow-y-auto custom-scrollbar">
+                            <div id="emailBody" class="prose prose-invert max-w-none text-white/90"></div>
+                        </div>
+                    </div>
+
+                    <!-- Compose/Draft Editor -->
+                    <div id="composeEditor" class="hidden flex-1 flex flex-col slide-in">
+                        <div class="bg-white/10 backdrop-blur-lg border-b border-white/20 p-4">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-xl font-semibold text-white">
+                                    <span id="composeTitle">Compose Email</span>
+                                </h3>
+                                <div class="flex space-x-2">
+                                    <button id="saveDraftBtn" class="px-4 py-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 text-sm">
+                                        <i class="fas fa-save mr-1"></i>Save Draft
+                                    </button>
+                                    <button id="closeComposeBtn" class="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <input type="email" id="composeRecipient" placeholder="To:" class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <input type="text" id="composeSubject" placeholder="Subject" class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex-1 p-6">
+                            <div id="quillEditor"></div>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-lg border-t border-white/20 p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex space-x-2">
+                                    <button id="sendBtn" class="bg-gradient-to-r from-blue-500 to-blue-900 text-white py-2 px-6 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-900 focus:outline-none transition-all duration-200">
+                                        <i class="fas fa-paper-plane mr-2"></i>Send
+                                    </button>
+                                    <button id="attachBtn" class="px-4 py-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200">
+                                        <i class="fas fa-paperclip mr-1"></i>Attach
+                                    </button>
+                                </div>
+                                <div id="autosaveIndicator" class="text-sm text-white/50">
+                                    <span id="autosaveText"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // App State
+        let currentView = 'inbox';
+        let selectedEmail = null;
+        let composeMode = false;
+        let currentDraftId = null;
+        let autosaveTimer = null;
+        let quill = null;
+        
+        // Sample data (replace with API calls)
+        const sampleEmails = {
+            inbox: [
+                {
+                    id: 1,
+                    from: 'john@example.com',
+                    subject: 'Welcome to MailCrypt',
+                    date: new Date().toLocaleDateString(),
+                    body: '<p>Welcome to MailCrypt! This is a secure email platform that protects your communications.</p>',
+                    unread: true
+                },
+                {
+                    id: 2,
+                    from: 'support@mailcrypt.com',
+                    subject: 'Getting Started Guide',
+                    date: new Date(Date.now() - 86400000).toLocaleDateString(),
+                    body: '<p>Here\'s how to get started with MailCrypt...</p>',
+                    unread: false
+                }
+            ],
+            sent: [],
+            drafts: [],
+            trash: []
+        };
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeQuill();
+            loadEmails();
+            bindEvents();
+            updateNavigation();
+        });
+
+        // Initialize Quill editor
+        function initializeQuill() {
+            quill = new Quill('#quillEditor', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        [{ 'header': [1, 2, false] }],
+                        ['bold', 'italic', 'underline'],
+                        ['link', 'blockquote', 'code-block'],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'color': [] }, { 'background': [] }],
+                        ['clean']
+                    ]
+                },
+                placeholder: 'Write your message...'
+            });
+
+            // Auto-save on content change
+            quill.on('text-change', function() {
+                clearTimeout(autosaveTimer);
+                autosaveTimer = setTimeout(autosaveDraft, 2000);
+            });
+        }
+
+        // Bind event listeners
+        function bindEvents() {
+            // Navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const view = this.dataset.view;
+                    switchView(view);
+                });
+            });
+
+            // Compose button
+            document.getElementById('composeBtn').addEventListener('click', openCompose);
+            document.getElementById('closeComposeBtn').addEventListener('click', closeCompose);
+            
+            // Email actions
+            document.getElementById('sendBtn').addEventListener('click', sendEmail);
+            document.getElementById('saveDraftBtn').addEventListener('click', saveDraft);
+            document.getElementById('replyBtn').addEventListener('click', replyToEmail);
+            document.getElementById('deleteBtn').addEventListener('click', deleteEmail);
+            
+            // Header actions
+            document.getElementById('refreshBtn').addEventListener('click', refreshEmails);
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+
+            // Auto-save on input changes
+            document.getElementById('composeRecipient').addEventListener('input', scheduleAutosave);
+            document.getElementById('composeSubject').addEventListener('input', scheduleAutosave);
+        }
+
+        // Switch between views
+        function switchView(view) {
+            currentView = view;
+            document.getElementById('currentViewTitle').textContent = view.charAt(0).toUpperCase() + view.slice(1);
+            
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                if (item.dataset.view === view) {
+                    item.classList.add('bg-white/20', 'text-white');
+                } else {
+                    item.classList.remove('bg-white/20', 'text-white');
+                }
+            });
+
+            loadEmails();
+            hideEmailViewer();
+        }
+
+        // Load drafts from backend
+        async function loadDrafts() {
+            try {
+                const response = await fetch('/mail/get', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        type: "drafts"
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === true && data.drafts) {
+                    sampleEmails.drafts = data.drafts;
+                    updateDraftCount();
+                    
+                    // If we're currently viewing drafts, reload the list
+                    if (currentView === 'drafts') {
+                        loadEmails();
+                    }
+                } else {
+                    console.error('Failed to load drafts:', data.message);
+                }
+            } catch (error) {
+                console.error('Load drafts error:', error);
+            }
+        }
+
+        // Load emails for current view (updated to handle drafts from backend)
+        async function loadEmails() {
+            const container = document.getElementById('mailContainer');
+            
+            // Show loading state
+            container.innerHTML = `
+                <div class="p-8 text-center">
+                    <i class="fas fa-spinner fa-spin text-white/60 text-3xl mb-4"></i>
+                    <p class="text-white/60">Loading emails...</p>
+                </div>
+            `;
+
+            let emails = [];
+            
+            if (currentView === 'drafts') {
+                // Load drafts from backend
+                await loadDrafts();
+                emails = sampleEmails.drafts || [];
+            } else {
+                // Use sample data for other views (you can update these similarly)
+                emails = sampleEmails[currentView] || [];
+            }
+            
+            if (emails.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center">
+                        <i class="fas fa-inbox text-white/30 text-4xl mb-4"></i>
+                        <p class="text-white/50">No emails in ${currentView}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = emails.map(email => `
+                <div class="mail-item p-4 border-b border-white/10 cursor-pointer hover:bg-white/5 transition-all duration-200 ${email.unread ? 'bg-white/5' : ''}" data-email-id="${email.id}">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="font-medium text-white ${email.unread ? 'font-bold' : ''}">${email.from || email.to || 'Draft'}</div>
+                        <div class="text-sm text-white/60">${email.date || new Date().toLocaleDateString()}</div>
+                    </div>
+                    <div class="text-white/90 mb-1 ${email.unread ? 'font-semibold' : ''}">${email.subject}</div>
+                    <div class="text-sm text-white/60 truncate">${stripHtml(email.body)}</div>
+                    ${email.unread ? '<div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>' : ''}
+                </div>
+            `).join('');
+
+            // Bind email click events
+            document.querySelectorAll('.mail-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const emailId = parseInt(this.dataset.emailId);
+                    if (currentView === 'drafts') {
+                        openDraft(emailId);
+                    } else {
+                        openEmail(emailId);
+                    }
+                });
+            });
+        }
+
+        // Show notification function
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+            
+            notification.className = `fixed top-4 right-4 ${bgColor} text-white px-4 py-3 rounded-lg shadow-lg z-50 fade-in flex items-center space-x-2`;
+            
+            const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            
+            notification.innerHTML = `
+                <i class="fas ${icon}"></i>
+                <span>${message}</span>
+                <button class="ml-2 text-white/80 hover:text-white" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        // Open email viewer
+        function openEmail(emailId) {
+            const email = sampleEmails[currentView].find(e => e.id === emailId);
+            if (!email) return;
+
+            selectedEmail = email;
+            
+            // Mark as read
+            email.unread = false;
+            
+            // Update UI
+            document.getElementById('emailSubject').textContent = email.subject;
+            document.getElementById('emailFrom').textContent = `From: ${email.from}`;
+            document.getElementById('emailDate').textContent = email.date;
+            document.getElementById('emailBody').innerHTML = email.body;
+
+            showEmailViewer();
+            updateUnreadCount();
+        }
+
+        // Show/hide email viewer
+        function showEmailViewer() {
+            document.getElementById('welcomeState').classList.add('hidden');
+            document.getElementById('composeEditor').classList.add('hidden');
+            document.getElementById('emailViewer').classList.remove('hidden');
+            document.getElementById('emailViewer').classList.add('fade-in');
+        }
+
+        function hideEmailViewer() {
+            document.getElementById('emailViewer').classList.add('hidden');
+            if (!composeMode) {
+                document.getElementById('welcomeState').classList.remove('hidden');
+            }
+        }
+
+        // Compose functions
+        function openCompose() {
+            composeMode = true;
+            currentDraftId = null;
+            
+            // Clear form
+            document.getElementById('composeRecipient').value = '';
+            document.getElementById('composeSubject').value = '';
+            quill.setText('');
+            
+            document.getElementById('composeTitle').textContent = 'Compose Email';
+            
+            // Show composer
+            document.getElementById('welcomeState').classList.add('hidden');
+            document.getElementById('emailViewer').classList.add('hidden');
+            document.getElementById('composeEditor').classList.remove('hidden');
+        }
+
+        function closeCompose() {
+            if (hasUnsavedChanges()) {
+                Swal.fire({
+                    title: 'Unsaved Changes',
+                    text: 'Do you want to save this as a draft?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Save Draft',
+                    cancelButtonText: 'Discard',
+                    background: '#1e293b',
+                    color: '#fff',
+                    confirmButtonColor: '#3b82f6',
+                    cancelButtonColor: '#ef4444'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        saveDraft();
+                    }
+                    doCloseCompose();
+                });
+            } else {
+                doCloseCompose();
+            }
+        }
+
+        function doCloseCompose() {
+            composeMode = false;
+            currentDraftId = null;
+            document.getElementById('composeEditor').classList.add('hidden');
+            document.getElementById('welcomeState').classList.remove('hidden');
+        }
+
+        // Email actions
+        async function sendEmail() {
+            const recipient = document.getElementById('composeRecipient').value;
+            const subject = document.getElementById('composeSubject').value;
+            const body = quill.root.innerHTML;
+
+            if (!recipient || !subject || !body.trim()) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Missing Information',
+                    text: 'Please fill in recipient, subject, and message.',
+                    background: '#1e293b',
+                    color: '#fff',
+                    confirmButtonColor: '#3b82f6'
+                });
+                return;
+            }
+
+            try {
+                // Simulate API call
+                const response = await fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ recipient, subject, body })
+                });
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Email Sent!',
+                        text: 'Your email has been sent successfully.',
+                        background: '#1e293b',
+                        color: '#fff',
+                        confirmButtonColor: '#3b82f6',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+
+                    // Add to sent items
+                    sampleEmails.sent.unshift({
+                        id: Date.now(),
+                        to: recipient,
+                        subject: subject,
+                        date: new Date().toLocaleDateString(),
+                        body: body
+                    });
+
+                    // Remove from drafts if it was a draft
+                    if (currentDraftId) {
+                        sampleEmails.drafts = sampleEmails.drafts.filter(d => d.id !== currentDraftId);
+                        updateDraftCount();
+                    }
+
+                    closeCompose();
+                } else {
+                    throw new Error('Failed to send email');
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Send Failed',
+                    text: 'Failed to send email. Please try again.',
+                    background: '#1e293b',
+                    color: '#fff',
+                    confirmButtonColor: '#3b82f6'
+                });
+            }
+        }
+
+        async function saveDraft() {
+            const recipient = document.getElementById('composeRecipient').value;
+            const subject = document.getElementById('composeSubject').value;
+            const body = quill.root.innerHTML;
+
+            if (!recipient && !subject && !body.trim()) return;
+
+            const draftData = {
+                type: "save",
+                id: currentDraftId,
+                to: recipient,
+                subject: subject || '(No Subject)',
+                body: body
+            };
+
+            try {
+                const response = await fetch('/mail/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(draftData)
+                });
+
+                const data = await response.json();
+
+                if (data.status === true) {
+                    // Set draft ID if this was a new draft
+                    if (!currentDraftId && data.draftId) {
+                        currentDraftId = data.draftId;
+                    }
+                    
+                    updateAutosaveIndicator('Draft saved');
+                    
+                    // Update draft count by fetching from backend
+                    await loadDrafts();
+                    
+                    // Show notification
+                    showNotification('Draft saved successfully', 'success');
+                } else {
+                    throw new Error(data.message || 'Failed to save draft');
+                }
+            } catch (error) {
+                console.error('Save draft error:', error);
+                updateAutosaveIndicator('Save failed');
+                showNotification('Failed to save draft', 'error');
+            }
+        }
+
+        async function autosaveDraft() {
+            if (!composeMode) return;
+            
+            const recipient = document.getElementById('composeRecipient').value;
+            const subject = document.getElementById('composeSubject').value;
+            const body = quill.root.innerHTML;
+
+            if (!recipient && !subject && !body.trim()) return;
+
+            const draftData = {
+                type: "save",
+                id: currentDraftId,
+                to: recipient,
+                subject: subject || '(No Subject)',
+                body: body
+            };
+
+            try {
+                const response = await fetch('/mail/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(draftData)
+                });
+
+                const data = await response.json();
+
+                if (data.status === true) {
+                    // Set draft ID if this was a new draft
+                    if (!currentDraftId && data.draftId) {
+                        currentDraftId = data.draftId;
+                    }
+                    
+                    updateAutosaveIndicator('Auto-saved');
+                    
+                    // Update draft count silently
+                    await loadDrafts();
+                } else {
+                    updateAutosaveIndicator('Auto-save failed');
+                }
+            } catch (error) {
+                console.error('Auto-save error:', error);
+                updateAutosaveIndicator('Auto-save failed');
+            }
+        }
+
+        function scheduleAutosave() {
+            clearTimeout(autosaveTimer);
+            autosaveTimer = setTimeout(autosaveDraft, 2000);
+        }
+
+        // Helper functions
+        function hasUnsavedChanges() {
+            const recipient = document.getElementById('composeRecipient').value;
+            const subject = document.getElementById('composeSubject').value;
+            const body = quill.root.innerHTML;
+            return recipient || subject || body.trim();
+        }
+
+        function stripHtml(html) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = html;
+            return tmp.textContent || tmp.innerText || '';
+        }
+
+        function updateAutosaveIndicator(text) {
+            document.getElementById('autosaveText').textContent = text;
+            setTimeout(() => {
+                document.getElementById('autosaveText').textContent = '';
+            }, 2000);
+        }
+
+        function updateUnreadCount() {
+            const unreadCount = sampleEmails.inbox.filter(e => e.unread).length;
+            const badge = document.getElementById('unreadCount');
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function updateDraftCount() {
+            const draftCount = sampleEmails.drafts.length;
+            const badge = document.getElementById('draftCount');
+            if (draftCount > 0) {
+                badge.textContent = draftCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function updateNavigation() {
+            updateUnreadCount();
+            updateDraftCount();
+        }
+
+        function replyToEmail() {
+            if (!selectedEmail) return;
+            
+            openCompose();
+            document.getElementById('composeRecipient').value = selectedEmail.from;
+            document.getElementById('composeSubject').value = `Re: ${selectedEmail.subject}`;
+            document.getElementById('composeTitle').textContent = 'Reply';
+        }
+
+        function deleteEmail() {
+            if (!selectedEmail) return;
+            
+            Swal.fire({
+                title: 'Delete Email?',
+                text: 'This email will be moved to trash.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel',
+                background: '#1e293b',
+                color: '#fff',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Move to trash
+                    const emailIndex = sampleEmails[currentView].findIndex(e => e.id === selectedEmail.id);
+                    if (emailIndex >= 0) {
+                        const [email] = sampleEmails[currentView].splice(emailIndex, 1);
+                        sampleEmails.trash.unshift(email);
+                        
+                        loadEmails();
+                        hideEmailViewer();
+                        updateNavigation();
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Email Deleted',
+                            text: 'Email moved to trash.',
+                            background: '#1e293b',
+                            color: '#fff',
+                            confirmButtonColor: '#3b82f6',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    }
+                }
+            });
+        }
+
+        function refreshEmails() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.classList.add('fa-spin');
+            
+            // Simulate API call
+            setTimeout(() => {
+                loadEmails();
+                refreshBtn.classList.remove('fa-spin');
+                
+                // Show notification
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 fade-in';
+                notification.textContent = 'Emails refreshed';
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }, 1000);
+        }
+
+        function logout() {
+            Swal.fire({
+                title: 'Logout?',
+                text: 'Are you sure you want to logout?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Logout',
+                cancelButtonText: 'Cancel',
+                background: '#1e293b',
+                color: '#fff',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/login';
+                }
+            });
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'n':
+                        e.preventDefault();
+                        openCompose();
+                        break;
+                    case 's':
+                        if (composeMode) {
+                            e.preventDefault();
+                            saveDraft();
+                        }
+                        break;
+                    case 'Enter':
+                        if (composeMode && (e.ctrlKey || e.metaKey)) {
+                            e.preventDefault();
+                            sendEmail();
+                        }
+                        break;
+                }
+            }
+            
+            if (e.key === 'Escape') {
+                if (composeMode) {
+                    closeCompose();
+                }
+            }
+        });
+
+        // Handle draft opening
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.mail-item') && currentView === 'drafts') {
+                e.preventDefault();
+                const emailId = parseInt(e.target.closest('.mail-item').dataset.emailId);
+                openDraft(emailId);
+            }
+        });
+
+        function openDraft(draftId) {
+            const draft = sampleEmails.drafts.find(d => d.id === draftId);
+            if (!draft) return;
+
+            composeMode = true;
+            currentDraftId = draftId;
+            
+            document.getElementById('composeRecipient').value = draft.to || '';
+            document.getElementById('composeSubject').value = draft.subject === '(No Subject)' ? '' : draft.subject;
+            quill.root.innerHTML = draft.body || '';
+            
+            document.getElementById('composeTitle').textContent = 'Edit Draft';
+            
+            document.getElementById('welcomeState').classList.add('hidden');
+            document.getElementById('emailViewer').classList.add('hidden');
+            document.getElementById('composeEditor').classList.remove('hidden');
+        }
+
+        // Initialize tooltips and additional features
+        function initializeTooltips() {
+            const tooltipElements = document.querySelectorAll('[title]');
+            tooltipElements.forEach(element => {
+                element.addEventListener('mouseenter', showTooltip);
+                element.addEventListener('mouseleave', hideTooltip);
+            });
+        }
+
+        function showTooltip(e) {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'absolute bg-gray-800 text-white px-2 py-1 rounded text-sm z-50 pointer-events-none';
+            tooltip.textContent = e.target.title;
+            tooltip.id = 'tooltip';
+            
+            document.body.appendChild(tooltip);
+            
+            const rect = e.target.getBoundingClientRect();
+            tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+            tooltip.style.top = rect.bottom + 5 + 'px';
+            
+            e.target.title = '';
+        }
+
+        function hideTooltip(e) {
+            const tooltip = document.getElementById('tooltip');
+            if (tooltip) {
+                tooltip.remove();
+            }
+        }
+
+        // Email search functionality
+        function initializeSearch() {
+            const searchInput = document.createElement('input');
+            searchInput.type = 'text';
+            searchInput.placeholder = 'Search emails...';
+            searchInput.className = 'w-full px-3 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm';
+            
+            const searchContainer = document.createElement('div');
+            searchContainer.className = 'p-4 border-b border-white/20';
+            searchContainer.appendChild(searchInput);
+            
+            const emailList = document.getElementById('emailList');
+            const currentViewTitle = emailList.querySelector('[id="currentViewTitle"]').parentElement;
+            currentViewTitle.after(searchContainer);
+
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                filterEmails(query);
+            });
+        }
+
+        function filterEmails(query) {
+            const emails = sampleEmails[currentView] || [];
+            const filteredEmails = emails.filter(email => 
+                email.subject.toLowerCase().includes(query) ||
+                email.from?.toLowerCase().includes(query) ||
+                email.to?.toLowerCase().includes(query) ||
+                stripHtml(email.body).toLowerCase().includes(query)
+            );
+
+            const container = document.getElementById('mailContainer');
+            
+            if (filteredEmails.length === 0 && query) {
+                container.innerHTML = `
+                    <div class="p-8 text-center">
+                        <i class="fas fa-search text-white/30 text-4xl mb-4"></i>
+                        <p class="text-white/50">No emails match your search</p>
+                    </div>
+                `;
+                return;
+            }
+
+            if (query === '') {
+                loadEmails();
+                return;
+            }
+
+            container.innerHTML = filteredEmails.map(email => `
+                <div class="mail-item p-4 border-b border-white/10 cursor-pointer hover:bg-white/5 transition-all duration-200 ${email.unread ? 'bg-white/5' : ''}" data-email-id="${email.id}">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="font-medium text-white ${email.unread ? 'font-bold' : ''}">${email.from || email.to}</div>
+                        <div class="text-sm text-white/60">${email.date}</div>
+                    </div>
+                    <div class="text-white/90 mb-1 ${email.unread ? 'font-semibold' : ''}">${highlightText(email.subject, query)}</div>
+                    <div class="text-sm text-white/60 truncate">${highlightText(stripHtml(email.body), query)}</div>
+                    ${email.unread ? '<div class="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>' : ''}
+                </div>
+            `).join('');
+
+            // Re-bind email click events
+            document.querySelectorAll('.mail-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const emailId = parseInt(this.dataset.emailId);
+                    if (currentView === 'drafts') {
+                        openDraft(emailId);
+                    } else {
+                        openEmail(emailId);
+                    }
+                });
+            });
+        }
+
+        function highlightText(text, query) {
+            if (!query) return text;
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<mark class="bg-yellow-300 text-black">$1</mark>');
+        }
+
+        // Initialize search after DOM is loaded
+        setTimeout(initializeSearch, 100);
+
+        // Email signature functionality
+        function addSignature() {
+            const signature = '\n\n---\nSent securely with MailCrypt';
+            const currentContent = quill.root.innerHTML;
+            if (!currentContent.includes('Sent securely with MailCrypt')) {
+                quill.root.innerHTML = currentContent + signature;
+            }
+        }
+
+        // Add signature button to compose toolbar
+        setTimeout(() => {
+            const toolbar = document.querySelector('.ql-toolbar');
+            if (toolbar) {
+                const signatureBtn = document.createElement('button');
+                signatureBtn.type = 'button';
+                signatureBtn.className = 'ql-signature px-2 py-1 text-white/70 hover:text-white hover:bg-white/10 rounded text-sm';
+                signatureBtn.innerHTML = '<i class="fas fa-signature"></i>';
+                signatureBtn.title = 'Add Signature';
+                signatureBtn.addEventListener('click', addSignature);
+                toolbar.appendChild(signatureBtn);
+            }
+        }, 500);
+
+        // Responsive design adjustments
+        function handleResize() {
+            const isMobile = window.innerWidth < 768;
+            const sidebar = document.querySelector('aside');
+            const emailList = document.getElementById('emailList');
+            
+            if (isMobile) {
+                sidebar.classList.add('hidden', 'md:block');
+                emailList.classList.add('hidden', 'md:flex');
+            } else {
+                sidebar.classList.remove('hidden');
+                emailList.classList.remove('hidden');
+            }
+        }
+
+        window.addEventListener('resize', handleResize);
+        handleResize(); // Initial check
+
+        // Performance optimization - lazy loading for large email lists
+        function setupLazyLoading() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        if (img.dataset.src) {
+                            img.src = img.dataset.src;
+                            img.removeAttribute('data-src');
+                            observer.unobserve(img);
+                        }
+                    }
+                });
+            });
+
+            document.querySelectorAll('img[data-src]').forEach(img => {
+                observer.observe(img);
+            });
+        }
+
+        // Initialize app features
+        setTimeout(() => {
+            initializeTooltips();
+            setupLazyLoading();
+        }, 1000);
+    </script>
+</body>
+</html>
